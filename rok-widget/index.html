@@ -74,6 +74,10 @@
    In het iframe hoef je dus alleen ?site=... aan te passen.
    Afwijkende naam op één site? Voeg toe aan de link: &algemeen=Andere%20naam
    ===================================================================== */
+// Weergave die geopend wordt (zoals in jullie links: /Forms/Laatst gewijzigd.aspx).
+// Zet op '' om de standaardweergave van de bibliotheek te openen.
+const WEERGAVE = 'Laatst gewijzigd';
+ 
 const GROEPEN = {
   beleid: { label: 'Beleid',                  kleur: '#4d5554', tint: '#e4e7e5' },
   kwal:   { label: 'Kwaliteit',               kleur: '#b91818', tint: '#f6dede' },
@@ -140,7 +144,10 @@ function hexje(kleur, b, h) {
 function url(d) {
   const bib = p.get(d.key) || d.bib;
   if (/^https?:\/\//i.test(bib)) return bib;
-  return site ? site + '/' + encodeURIComponent(decodeURIComponent(bib)) : '#';
+  if (!site) return '#';
+  const w = p.has('weergave') ? p.get('weergave') : WEERGAVE;
+  const pad = site + '/' + encodeURIComponent(decodeURIComponent(bib));
+  return w ? pad + '/Forms/' + encodeURIComponent(w) + '.aspx' : pad;
 }
 function tegel(d) {
   const g = GROEPEN[d.groep];

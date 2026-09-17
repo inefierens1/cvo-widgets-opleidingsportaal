@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documenten per ROK-domein – Crescendo CVO</title>
+<style>
+  :root {
+    --donkergrijs: #4d5554;
+    --lichtgrijs: #f7f8f6;
+    --rand: #e3e6e4;
+    --rood: #b91818;
+    --font: Calibri, 'Segoe UI', 'Open Sans', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { font-family: var(--font); color: #000; padding: 4px; }
+ 
+  .widget { background: #fff; border: 1px solid var(--rand); border-radius: 12px; padding: 24px 28px 28px; }
+  .kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+  .kop h2 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: var(--donkergrijs); }
+  .kop p { margin: 0; font-size: 15px; font-weight: 300; }
+  .legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--donkergrijs); }
+  .legende li { display: flex; align-items: center; gap: 6px; }
+  .widget.verberg-titel .kop h2, .widget.verberg-titel .kop p { display: none; }
+ 
+  .groep { margin-top: 18px; }
+  #inhoud > .groep:first-child { margin-top: 0; }
+  .groep h3 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--donkergrijs); }
+ 
+  .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+  .raster.zes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  @media (min-width: 640px) { .raster.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .combi h3 { margin: 0 0 -4px; }
+ 
+  .tegel {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    min-height: 160px; padding: 16px 10px 12px;
+    border: 1px solid var(--rand); border-radius: 10px; background: #fff;
+    text-align: center; text-decoration: none; color: #000;
+    transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .tegel:hover { background: var(--lichtgrijs); box-shadow: 0 2px 10px rgba(77,85,84,.14); transform: translateY(-2px); }
+  .tegel:focus-visible { outline: 3px solid var(--rood); outline-offset: 2px; }
+  .hex { position: relative; width: 60px; height: 69px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .hex > svg:first-child { position: absolute; inset: 0; }
+  .hex > svg:last-child { position: relative; }
+  .naam { flex-grow: 1; display: flex; align-items: center; font-size: 15px; font-weight: 700; line-height: 1.2; hyphens: manual; overflow-wrap: anywhere; }
+  .ga { font-size: 12px; color: var(--donkergrijs); }
+  .tegel:hover .ga { color: var(--rood); }
+  .tegel.leeg { opacity: .55; }
+ 
+  @media (prefers-reduced-motion: reduce) { .tegel { transition: none; } .tegel:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="widget" id="widget">
+  <div class="kop">
+    <div>
+      <h2 id="titel">Documenten per ROK-domein</h2>
+      <p>Klik op een domein en je staat meteen in de juiste bibliotheek.</p>
+    </div>
+    <ul class="legende" id="legende"></ul>
+  </div>
+  <div id="inhoud"></div>
+</div>
+ 
+<script>
+/* =====================================================================
+   INSTELLINGEN
+   Pas hieronder de bibliotheeknamen aan zodat ze overeenkomen met de
+   URL-namen van de bibliotheken op jullie sites.
+   Voorbeeld: https://cvocrescendo.sharepoint.com/sites/FotografieOverkoepelend/AlgemeenBeleid
+   -> "bib" is dan "AlgemeenBeleid".
+   Per site kun je een bibliotheek ook overschrijven via de link:
+   ...index.html?site=...&algemeen=AndereNaam
+   ===================================================================== */
+const GROEPEN = {
+  beleid: { label: 'Beleid',                  kleur: '#4d5554', tint: '#e4e7e5' },
+  kwal:   { label: 'Kwaliteit',               kleur: '#b91818', tint: '#f6dede' },
+  ontw:   { label: 'Ontwikkeling stimuleren', kleur: '#4f6a5c', tint: '#ced7d2' },
+  res:    { label: 'Resultaten',              kleur: '#3a6f8e', tint: '#d7e6ee' }
+};
+ 
+const DOMEINEN = [
+  { key: 'algemeen',     groep: 'beleid', naam: 'Algemeen beleid',                   bib: 'AlgemeenBeleid',
+    icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M15.5 8.5l-2 5-5 2 2-5z' },
+  { key: 'onderwijs',    groep: 'beleid', naam: 'Onderwijsbeleid',                   bib: 'Onderwijsbeleid',
+    icoon: 'M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5Z M12 6v13.5' },
+  { key: 'personeel',    groep: 'beleid', naam: 'Personeelsbeleid',                  bib: 'Personeelsbeleid',
+    icoon: 'M9 11a3.5 3.5 0 1 0 0-7a3.5 3.5 0 1 0 0 7Z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 4.5a3 3 0 0 1 0 6 M18 14c2 .6 3 2.7 3 6' },
+  { key: 'prof',         groep: 'beleid', naam: 'Professionalisering',               bib: 'Professionalisering',
+    icoon: 'M2 9l10-5 10 5-10 5z M6 11v5c3 2.5 9 2.5 12 0v-5' },
+  { key: 'financieel',   groep: 'beleid', naam: 'Financieel en materieel beleid',    bib: 'FinancieelMaterieelBeleid',
+    icoon: 'M3 8l9-4 9 4v8l-9 4-9-4z M3 8l9 4 9-4 M12 12v8' },
+  { key: 'welzijn',      groep: 'beleid', naam: 'Veiligheid, welzijn en gezondheid', bib: 'VeiligheidWelzijnGezondheid',
+    icoon: 'M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z M9 12l2 2 4-4' },
+  { key: 'kwaliteit',    groep: 'kwal',   naam: 'Kwaliteits\u00ADontwikkeling',       bib: 'Kwaliteitsontwikkeling',
+    icoon: 'M20 12a8 8 0 0 1-14 5.3 M4 12a8 8 0 0 1 14-5.3 M18 3v4h-4 M6 21v-4h4' },
+  { key: 'doelgericht',  groep: 'ontw',   naam: 'Doelgericht werken',                bib: 'DoelgerichtWerken',   module: true,
+    icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8Z M12 11.5v1' },
+  { key: 'omgeving',     groep: 'ontw',   naam: 'Leer- en leefomgeving',             bib: 'LeerEnLeefomgeving',  module: true,
+    icoon: 'M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-5h4v5' },
+  { key: 'begeleiding',  groep: 'ontw',   naam: 'Begeleiding',                       bib: 'Begeleiding',         module: true,
+    icoon: 'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5' },
+  { key: 'evaluatie',    groep: 'ontw',   naam: 'Evaluatie',                         bib: 'Evaluatie',           module: true,
+    icoon: 'M9 4h6v3H9z M7 5.5H5V21h14V5.5h-2 M8.5 13l2 2 4-4' },
+  { key: 'resultaten',   groep: 'res',    naam: 'Resultaten en effecten',            bib: 'ResultatenEnEffecten',
+    icoon: 'M4 20V4 M4 20h16 M8 16v-4 M12 16V8 M16 16v-6' }
+];
+ 
+/* =====================================================================
+   Vanaf hier niets aanpassen
+   ===================================================================== */
+const p = new URLSearchParams(location.search);
+const site = (p.get('site') || '').replace(/\/+$/, '');
+const type = p.get('type') === 'module' ? 'module' : 'opleiding';
+const openIn = p.get('open') === 'nieuw' ? '_blank' : '_top';
+if (p.get('titel') === 'nee') document.getElementById('widget').classList.add('verberg-titel');
+if (p.get('kop')) document.getElementById('titel').textContent = p.get('kop');
+ 
+const NS = 'http://www.w3.org/2000/svg';
+const HEX = '50,2 95,28 95,87 50,113 5,87 5,28';
+ 
+function el(tag, attrs, kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+  (kids || []).forEach(c => e.append(c));
+  return e;
+}
+function svg(tag, attrs, kids) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+  (kids || []).forEach(c => e.append(c));
+  return e;
+}
+function hexje(kleur, b, h) {
+  return svg('svg', { width: b, height: h, viewBox: '0 0 100 115', 'aria-hidden': 'true' },
+    [svg('polygon', { points: HEX, fill: kleur })]);
+}
+function url(d) {
+  const bib = p.get(d.key) || d.bib;
+  if (/^https?:\/\//i.test(bib)) return bib;
+  return site ? site + '/' + bib : '#';
+}
+function tegel(d) {
+  const g = GROEPEN[d.groep];
+  const href = url(d);
+  const a = el('a', { class: 'tegel' + (href === '#' ? ' leeg' : ''), href, target: openIn,
+                      rel: 'noopener', 'aria-label': d.naam + ': open bibliotheek' }, [
+    el('span', { class: 'hex' }, [
+      hexje(g.tint, 60, 69),
+      svg('svg', { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: g.kleur,
+                   'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+          [svg('path', { d: d.icoon })])
+    ]),
+    el('span', { class: 'naam' }, [d.naam]),
+    el('span', { class: 'ga' }, ['Open bibliotheek →'])
+  ]);
+  return a;
+}
+function groepBlok(key, items) {
+  return el('section', { class: 'groep' }, [el('h3', {}, [GROEPEN[key].label]), el('div', { class: 'raster' }, items.map(tegel))]);
+}
+ 
+const lijst = type === 'module' ? DOMEINEN.filter(d => d.module) : DOMEINEN;
+const inhoud = document.getElementById('inhoud');
+const legende = document.getElementById('legende');
+const van = k => lijst.filter(d => d.groep === k);
+ 
+[...new Set(lijst.map(d => d.groep))].forEach(k =>
+  legende.append(el('li', {}, [hexje(GROEPEN[k].kleur, 12, 14), GROEPEN[k].label])));
+ 
+let modus = '';
+function teken() {
+  const breed = window.innerWidth >= 860;
+  const nieuw = type === 'module' ? 'module' : (breed ? 'breed' : 'smal');
+  if (nieuw === modus) return;
+  modus = nieuw;
+  inhoud.replaceChildren();
+  if (type === 'module') {
+    legende.remove();
+    inhoud.append(el('div', { class: 'raster vier' }, lijst.map(tegel)));
+  } else if (breed) {
+    const b = groepBlok('beleid', van('beleid'));
+    b.lastChild.classList.add('zes');
+    const h = (k, span) => { const x = el('h3', {}, [GROEPEN[k].label]); x.style.gridColumn = 'span ' + span; return x; };
+    const combi = el('section', { class: 'groep combi raster zes' }, [
+      h('kwal', van('kwal').length), h('ontw', van('ontw').length), h('res', van('res').length),
+      ...['kwal', 'ontw', 'res'].flatMap(k => van(k).map(tegel))
+    ]);
+    inhoud.append(b, combi);
+  } else {
+    ['beleid', 'kwal', 'ontw', 'res'].forEach(k => inhoud.append(groepBlok(k, van(k))));
+  }
+}
+teken();
+window.addEventListener('resize', teken);
+ 
+if (!site) {
+  const m = el('p', { style: 'margin:16px 0 0;font-size:13px;color:#b91818' },
+    ['Nog geen site ingesteld: voeg ?site=https://… toe aan de link van deze widget.']);
+  document.getElementById('widget').append(m);
+}
+</script>
+</body>
+</html>

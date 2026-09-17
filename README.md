@@ -1,1 +1,1 @@
-# cvo-widgets-opleidingspotaal
+# cvo-widgets-opleidingsportaal

@@ -24,14 +24,12 @@
   .legende li { display: flex; align-items: center; gap: 6px; }
   .widget.verberg-titel .kop h2, .widget.verberg-titel .kop p { display: none; }
  
-  .groep { margin-top: 18px; }
+  .groep { margin-top: 14px; }
   #inhoud > .groep:first-child { margin-top: 0; }
-  .groep h3 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--donkergrijs); }
  
   .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
   .raster.zes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   @media (min-width: 640px) { .raster.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-  .combi h3 { margin: 0 0 -4px; }
  
   .tegel {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
@@ -166,7 +164,7 @@ function tegel(d) {
   return a;
 }
 function groepBlok(key, items) {
-  return el('section', { class: 'groep' }, [el('h3', {}, [GROEPEN[key].label]), el('div', { class: 'raster' }, items.map(tegel))]);
+  return el('section', { class: 'groep' }, [el('div', { class: 'raster' }, items.map(tegel))]);
 }
  
 const lijst = type === 'module' ? DOMEINEN.filter(d => d.module) : DOMEINEN;
@@ -190,11 +188,8 @@ function teken() {
   } else if (breed) {
     const b = groepBlok('beleid', van('beleid'));
     b.lastChild.classList.add('zes');
-    const h = (k, span) => { const x = el('h3', {}, [GROEPEN[k].label]); x.style.gridColumn = 'span ' + span; return x; };
-    const combi = el('section', { class: 'groep combi raster zes' }, [
-      h('kwal', van('kwal').length), h('ontw', van('ontw').length), h('res', van('res').length),
-      ...['kwal', 'ontw', 'res'].flatMap(k => van(k).map(tegel))
-    ]);
+    const combi = el('section', { class: 'groep combi raster zes' },
+      ['kwal', 'ontw', 'res'].flatMap(k => van(k).map(tegel)));
     inhoud.append(b, combi);
   } else {
     ['beleid', 'kwal', 'ontw', 'res'].forEach(k => inhoud.append(groepBlok(k, van(k))));

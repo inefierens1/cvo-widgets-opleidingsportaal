@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zoekbalk – Crescendo CVO</title>
+<style>
+  :root {
+    --donkergrijs: #4d5554;
+    --lichtgrijs: #f7f8f6;
+    --rand: #b9c0bd;
+    --rood: #b91818;
+    --rood-donker: #8f1212;
+    --font: Calibri, 'Segoe UI', 'Open Sans', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { font-family: var(--font); color: #000; padding: 4px; }
+ 
+  .zoek { background: var(--lichtgrijs); border-radius: 12px; padding: 18px 22px 16px; }
+  .zoek.wit { background: #fff; border: 1px solid #e3e6e4; }
+  label { display: block; margin: 0 0 8px; font-size: 15px; font-weight: 700; color: var(--donkergrijs); }
+  .rij { display: flex; gap: 10px; }
+  .veld { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px;
+          background: #fff; border: 1px solid var(--rand); border-radius: 8px; }
+  .veld:focus-within { border-color: var(--rood); box-shadow: 0 0 0 3px rgba(185,24,24,.15); }
+  .veld svg { flex-shrink: 0; }
+  input { flex: 1; min-width: 0; border: 0; outline: none; font: inherit; font-size: 16px; background: transparent; color: #000; }
+  input::placeholder { color: #6b7371; }
+  button { height: 48px; padding: 0 22px; border: 0; border-radius: 8px; background: var(--rood); color: #fff;
+           font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; }
+  button:hover { background: var(--rood-donker); }
+  button:focus-visible { outline: 3px solid var(--donkergrijs); outline-offset: 2px; }
+  .tips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 10px; font-size: 13px; color: var(--donkergrijs); }
+  .tips:empty { display: none; }
+  .tip { border: 1px solid #d3d8d6; background: #fff; color: var(--donkergrijs); border-radius: 999px;
+         height: 28px; padding: 0 12px; font-size: 13px; font-weight: 400; }
+  .tip:hover { background: #fff; border-color: var(--rood); color: var(--rood); }
+  .melding { margin: 8px 0 0; font-size: 13px; color: var(--rood); }
+  @media (max-width: 480px) { button span { display: none; } button { padding: 0 14px; } }
+</style>
+</head>
+<body>
+<form class="zoek" id="zoek" role="search">
+  <label for="q" id="label">Zoeken in deze site</label>
+  <div class="rij">
+    <div class="veld">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4d5554" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="Bijvoorbeeld: moduleplan, vakgroepverslag, nascholing">
+    </div>
+    <button type="submit" aria-label="Zoeken">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="vertical-align:-3px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+      <span>Zoeken</span>
+    </button>
+  </div>
+  <div class="tips" id="tips"></div>
+</form>
+ 
+<script>
+/* =====================================================================
+   Opties in de link (achter index.html of de map):
+   ?site=https://cvocrescendo.sharepoint.com/sites/SITENAAM   (verplicht, tenzij bereik=alles)
+   &bereik=alles        zoekt in heel Crescendo CVO i.p.v. alleen deze site
+   &open=nieuw          resultaten in een nieuw tabblad
+   &label=Eigen tekst   andere tekst boven het zoekvak
+   &hint=Eigen tekst    andere voorbeeldtekst in het zoekvak
+   &tips=moduleplan,evaluatiebundel,verslag   snelle zoektermen onder het vak
+   &stijl=wit           witte achtergrond met rand i.p.v. lichtgrijs
+   ===================================================================== */
+const TENANT = 'https://cvocrescendo.sharepoint.com';
+ 
+const p = new URLSearchParams(location.search);
+const site = (p.get('site') || '').replace(/\/+$/, '');
+const alles = p.get('bereik') === 'alles';
+const nieuw = p.get('open') === 'nieuw';
+const form = document.getElementById('zoek');
+const veld = document.getElementById('q');
+ 
+if (p.get('label')) document.getElementById('label').textContent = p.get('label');
+else if (alles) document.getElementById('label').textContent = 'Zoeken in heel Crescendo CVO';
+if (p.get('hint')) veld.placeholder = p.get('hint');
+if (p.get('stijl') === 'wit') form.classList.add('wit');
+ 
+function zoekUrl(term) {
+  const q = encodeURIComponent(term);
+  return alles
+    ? `${TENANT}/_layouts/15/search.aspx?q=${q}`
+    : `${site}/_layouts/15/search.aspx/siteall?q=${q}`;
+}
+ 
+function zoek(term) {
+  term = term.trim();
+  if (!term) { veld.focus(); return; }
+  const url = zoekUrl(term);
+  if (nieuw) { window.open(url, '_blank', 'noopener'); return; }
+  try { window.top.location.href = url; }
+  catch (e) { window.open(url, '_blank', 'noopener'); }
+}
+ 
+form.addEventListener('submit', e => { e.preventDefault(); zoek(veld.value); });
+ 
+const tips = (p.get('tips') || '').split(',').map(t => t.trim()).filter(Boolean);
+if (tips.length) {
+  const box = document.getElementById('tips');
+  const s = document.createElement('span');
+  s.textContent = 'Vaak gezocht:';
+  box.append(s);
+  tips.forEach(t => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tip'; b.textContent = t;
+    b.addEventListener('click', () => { veld.value = t; zoek(t); });
+    box.append(b);
+  });
+}
+ 
+if (!site && !alles) {
+  const m = document.createElement('p');
+  m.className = 'melding';
+  m.textContent = 'Nog geen site ingesteld: voeg ?site=https://… toe aan de link van deze zoekbalk.';
+  form.append(m);
+}
+</script>
+</body>
+</html>

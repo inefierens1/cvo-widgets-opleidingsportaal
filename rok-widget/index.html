@@ -68,12 +68,11 @@
 <script>
 /* =====================================================================
    INSTELLINGEN
-   Pas hieronder de bibliotheeknamen aan zodat ze overeenkomen met de
-   URL-namen van de bibliotheken op jullie sites.
-   Voorbeeld: https://cvocrescendo.sharepoint.com/sites/FotografieOverkoepelend/AlgemeenBeleid
-   -> "bib" is dan "AlgemeenBeleid".
-   Per site kun je een bibliotheek ook overschrijven via de link:
-   ...index.html?site=...&algemeen=AndereNaam
+   "bib" = de naam van de bibliotheek zoals ze op ELKE opleidingssite heet
+   (gewoon met spaties typen). De widget bouwt zelf de link:
+   <site>/<bib>   bv. .../sites/Vakfotograaf/Documenten Algemeen beleid
+   In het iframe hoef je dus alleen ?site=... aan te passen.
+   Afwijkende naam op één site? Voeg toe aan de link: &algemeen=Andere%20naam
    ===================================================================== */
 const GROEPEN = {
   beleid: { label: 'Beleid',                  kleur: '#4d5554', tint: '#e4e7e5' },
@@ -83,29 +82,29 @@ const GROEPEN = {
 };
  
 const DOMEINEN = [
-  { key: 'algemeen',     groep: 'beleid', naam: 'Algemeen beleid',                   bib: 'AlgemeenBeleid',
+  { key: 'algemeen',     groep: 'beleid', naam: 'Algemeen beleid',                   bib: 'Documenten Algemeen beleid',
     icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M15.5 8.5l-2 5-5 2 2-5z' },
-  { key: 'onderwijs',    groep: 'beleid', naam: 'Onderwijsbeleid',                   bib: 'Onderwijsbeleid',
+  { key: 'onderwijs',    groep: 'beleid', naam: 'Onderwijsbeleid',                   bib: 'Documenten Onderwijsbeleid',
     icoon: 'M4 5.5C6.5 4 9.5 4 12 6c2.5-2 5.5-2 8-.5V19c-2.5-1.5-5.5-1.5-8 .5-2.5-2-5.5-2-8-.5Z M12 6v13.5' },
-  { key: 'personeel',    groep: 'beleid', naam: 'Personeelsbeleid',                  bib: 'Personeelsbeleid',
+  { key: 'personeel',    groep: 'beleid', naam: 'Personeelsbeleid',                  bib: 'Documenten Personeelsbeleid',
     icoon: 'M9 11a3.5 3.5 0 1 0 0-7a3.5 3.5 0 1 0 0 7Z M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6 M16 4.5a3 3 0 0 1 0 6 M18 14c2 .6 3 2.7 3 6' },
-  { key: 'prof',         groep: 'beleid', naam: 'Professionalisering',               bib: 'Professionalisering',
+  { key: 'prof',         groep: 'beleid', naam: 'Professionalisering',               bib: 'Documenten Professionalisering',
     icoon: 'M2 9l10-5 10 5-10 5z M6 11v5c3 2.5 9 2.5 12 0v-5' },
-  { key: 'financieel',   groep: 'beleid', naam: 'Financieel en materieel beleid',    bib: 'FinancieelMaterieelBeleid',
+  { key: 'financieel',   groep: 'beleid', naam: 'Financieel en materieel beleid',    bib: 'Documenten Financieel en materieel beleid',
     icoon: 'M3 8l9-4 9 4v8l-9 4-9-4z M3 8l9 4 9-4 M12 12v8' },
-  { key: 'welzijn',      groep: 'beleid', naam: 'Veiligheid, welzijn en gezondheid', bib: 'VeiligheidWelzijnGezondheid',
+  { key: 'welzijn',      groep: 'beleid', naam: 'Veiligheid en welzijn', bib: 'Documenten Veiligheid en welzijn',
     icoon: 'M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z M9 12l2 2 4-4' },
-  { key: 'kwaliteit',    groep: 'kwal',   naam: 'Kwaliteits\u00ADontwikkeling',       bib: 'Kwaliteitsontwikkeling',
+  { key: 'kwaliteit',    groep: 'kwal',   naam: 'Kwaliteits\u00ADontwikkeling',       bib: 'Documenten Kwaliteitsontwikkeling',
     icoon: 'M20 12a8 8 0 0 1-14 5.3 M4 12a8 8 0 0 1 14-5.3 M18 3v4h-4 M6 21v-4h4' },
-  { key: 'doelgericht',  groep: 'ontw',   naam: 'Doelgericht werken',                bib: 'DoelgerichtWerken',   module: true,
+  { key: 'doelgericht',  groep: 'ontw',   naam: 'Doelgericht werken',                bib: 'Documenten Doelgericht werken',   module: true,
     icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8Z M12 11.5v1' },
-  { key: 'omgeving',     groep: 'ontw',   naam: 'Leer- en leefomgeving',             bib: 'LeerEnLeefomgeving',  module: true,
+  { key: 'omgeving',     groep: 'ontw',   naam: 'Leer- en leefomgeving',             bib: 'Documenten Leer en leefomgeving',  module: true,
     icoon: 'M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-5h4v5' },
-  { key: 'begeleiding',  groep: 'ontw',   naam: 'Begeleiding',                       bib: 'Begeleiding',         module: true,
+  { key: 'begeleiding',  groep: 'ontw',   naam: 'Begeleiding',                       bib: 'Documenten Begeleiding',         module: true,
     icoon: 'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5' },
-  { key: 'evaluatie',    groep: 'ontw',   naam: 'Evaluatie',                         bib: 'Evaluatie',           module: true,
+  { key: 'evaluatie',    groep: 'ontw',   naam: 'Evaluatie en opvolging',            bib: 'Documenten Evaluatie en opvolging',           module: true,
     icoon: 'M9 4h6v3H9z M7 5.5H5V21h14V5.5h-2 M8.5 13l2 2 4-4' },
-  { key: 'resultaten',   groep: 'res',    naam: 'Resultaten en effecten',            bib: 'ResultatenEnEffecten',
+  { key: 'resultaten',   groep: 'res',    naam: 'Resultaten en effecten',            bib: 'Documenten Resultaten en effecten',
     icoon: 'M4 20V4 M4 20h16 M8 16v-4 M12 16V8 M16 16v-6' }
 ];
  
@@ -115,7 +114,7 @@ const DOMEINEN = [
 const p = new URLSearchParams(location.search);
 const site = (p.get('site') || '').replace(/\/+$/, '');
 const type = p.get('type') === 'module' ? 'module' : 'opleiding';
-const openIn = p.get('open') === 'nieuw' ? '_blank' : '_top';
+const openIn = p.get('open') === 'zelfde' ? '_top' : '_blank';
 if (p.get('titel') === 'nee') document.getElementById('widget').classList.add('verberg-titel');
 if (p.get('kop')) document.getElementById('titel').textContent = p.get('kop');
  
@@ -141,7 +140,7 @@ function hexje(kleur, b, h) {
 function url(d) {
   const bib = p.get(d.key) || d.bib;
   if (/^https?:\/\//i.test(bib)) return bib;
-  return site ? site + '/' + bib : '#';
+  return site ? site + '/' + encodeURIComponent(decodeURIComponent(bib)) : '#';
 }
 function tegel(d) {
   const g = GROEPEN[d.groep];

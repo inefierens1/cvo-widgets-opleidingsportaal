@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documenten modulesite – Crescendo CVO</title>
+<style>
+  :root {
+    --donkergrijs: #4d5554;
+    --lichtgrijs: #f7f8f6;
+    --rand: #e3e6e4;
+    --rood: #b91818;
+    --font: Calibri, 'Segoe UI', 'Open Sans', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; }
+  body { font-family: var(--font); color: #000; padding: 4px; }
+ 
+  .widget { background: #fff; border: 1px solid var(--rand); border-radius: 12px; padding: 24px 28px 28px; }
+  .kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+  .kop h2 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: var(--donkergrijs); }
+  .kop p { margin: 0; font-size: 15px; font-weight: 300; }
+  .legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--donkergrijs); }
+  .legende li { display: flex; align-items: center; gap: 6px; }
+  .widget.verberg-titel .kop h2, .widget.verberg-titel .kop p { display: none; }
+ 
+  .groep { margin-top: 14px; }
+  #inhoud > .groep:first-child { margin-top: 0; }
+ 
+  .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
+  .raster.zes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  @media (min-width: 640px) { .raster.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+ 
+  .tegel {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    min-height: 160px; padding: 16px 10px 12px;
+    border: 1px solid var(--rand); border-radius: 10px; background: #fff;
+    text-align: center; text-decoration: none; color: #000;
+    transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .tegel:hover { background: var(--lichtgrijs); box-shadow: 0 2px 10px rgba(77,85,84,.14); transform: translateY(-2px); }
+  .tegel:focus-visible { outline: 3px solid var(--rood); outline-offset: 2px; }
+  .hex { position: relative; width: 60px; height: 69px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .hex > svg:first-child { position: absolute; inset: 0; }
+  .hex > svg:last-child { position: relative; }
+  .naam { flex-grow: 1; display: flex; align-items: center; font-size: 15px; font-weight: 700; line-height: 1.2; hyphens: manual; overflow-wrap: anywhere; }
+  .ga { font-size: 12px; color: var(--donkergrijs); }
+  .tegel:hover .ga { color: var(--rood); }
+  .tegel.leeg { opacity: .55; }
+ 
+  @media (prefers-reduced-motion: reduce) { .tegel { transition: none; } .tegel:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="widget" id="widget">
+  <div class="kop">
+    <div>
+      <h2 id="titel">DOCUMENTEN</h2>
+      <p>Klik op een tegel en je staat meteen in de juiste bib.</p>
+    </div>
+    <ul class="legende" id="legende"></ul>
+  </div>
+  <div id="inhoud"></div>
+</div>
+ 
+<script>
+/* =====================================================================
+   INSTELLINGEN - MODULESITES (4 bibliotheken)
+   "bib" = de naam van de bibliotheek zoals ze op ELKE modulesite heet.
+   De widget bouwt zelf de link: <site>/<bib>/Forms/AllItems.aspx
+   In het iframe pas je enkel ?site=... aan.
+   Wijkt een naam af op een site? Zet achter de link: &begeleiding=Andere%20naam
+   ===================================================================== */
+const WEERGAVE = 'AllItems';
+ 
+const GROEPEN = {
+  ontw: { label: 'Ontwikkeling stimuleren', kleur: '#4f6a5c', tint: '#ced7d2' }
+};
+ 
+const DOMEINEN = [
+  { key: 'doelgericht', groep: 'ontw', naam: 'Doelgericht werken',    bib: 'Documenten Doelgericht werken',
+    icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8Z M12 11.5v1' },
+  { key: 'omgeving',    groep: 'ontw', naam: 'Leer- en leefomgeving', bib: 'Leer en leefomgeving',
+    icoon: 'M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-5h4v5' },
+  { key: 'begeleiding', groep: 'ontw', naam: 'Begeleiden',            bib: 'Documenten Begeleiden',
+    icoon: 'M4 5h16v11H9l-5 4z M8 9h8 M8 12h5' },
+  { key: 'evalueren',   groep: 'ontw', naam: 'Evalueren',             bib: 'Documenten Evalueren',
+    icoon: 'M9 4h6v3H9z M7 5.5H5V21h14V5.5h-2 M8.5 13l2 2 4-4' }
+];
+ 
+/* =====================================================================
+   Vanaf hier niets aanpassen
+   ===================================================================== */
+const p = new URLSearchParams(location.search);
+const site = (p.get('site') || '').replace(/\/+$/, '');
+const openIn = p.get('open') === 'zelfde' ? '_top' : '_blank';
+if (p.get('titel') === 'nee') document.getElementById('widget').classList.add('verberg-titel');
+if (p.get('kop')) document.getElementById('titel').textContent = p.get('kop');
+ 
+const NS = 'http://www.w3.org/2000/svg';
+const HEX = '50,2 95,28 95,87 50,113 5,87 5,28';
+ 
+function el(tag, attrs, kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+  (kids || []).forEach(c => e.append(c));
+  return e;
+}
+function svg(tag, attrs, kids) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+  (kids || []).forEach(c => e.append(c));
+  return e;
+}
+function hexje(kleur, b, h) {
+  return svg('svg', { width: b, height: h, viewBox: '0 0 100 115', 'aria-hidden': 'true' },
+    [svg('polygon', { points: HEX, fill: kleur })]);
+}
+function url(d) {
+  const bib = p.get(d.key) || d.bib;
+  if (/^https?:\/\//i.test(bib)) return bib;
+  if (!site) return '#';
+  const w = p.has('weergave') ? p.get('weergave') : WEERGAVE;
+  const pad = site + '/' + encodeURIComponent(decodeURIComponent(bib));
+  return w ? pad + '/Forms/' + encodeURIComponent(w) + '.aspx' : pad;
+}
+function tegel(d) {
+  const g = GROEPEN[d.groep];
+  const href = url(d);
+  const a = el('a', { class: 'tegel' + (href === '#' ? ' leeg' : ''), href, target: openIn,
+                      rel: 'noopener', 'aria-label': d.naam + ': open bibliotheek' }, [
+    el('span', { class: 'hex' }, [
+      hexje(g.tint, 60, 69),
+      svg('svg', { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: g.kleur,
+                   'stroke-width': 1.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' },
+          [svg('path', { d: d.icoon })])
+    ]),
+    el('span', { class: 'naam' }, [d.naam]),
+    el('span', { class: 'ga' }, ['Open bibliotheek →'])
+  ]);
+  return a;
+}
+const inhoud = document.getElementById('inhoud');
+document.getElementById('legende').remove();
+inhoud.append(el('div', { class: 'raster vier' }, DOMEINEN.map(tegel)));
+ 
+if (!site) {
+  const m = el('p', { style: 'margin:16px 0 0;font-size:13px;color:#b91818' },
+    ['Nog geen site ingesteld: voeg ?site=https://… toe aan de link van deze widget.']);
+  document.getElementById('widget').append(m);
+}
+</script>
+</body>
+</html>

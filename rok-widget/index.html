@@ -15,7 +15,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; background: transparent; }
   body { font-family: var(--font); color: #000; padding: 4px; }
- 
+
   .widget { background: #fff; border: 1px solid var(--rand); border-radius: 12px; padding: 24px 28px 28px; }
   .kop { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
   .kop h2 { margin: 0 0 4px; font-size: 24px; font-weight: 700; color: var(--donkergrijs); }
@@ -23,14 +23,14 @@
   .legende { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font-size: 13px; color: var(--donkergrijs); }
   .legende li { display: flex; align-items: center; gap: 6px; }
   .widget.verberg-titel .kop h2, .widget.verberg-titel .kop p { display: none; }
- 
+
   .groep { margin-top: 14px; }
   #inhoud > .groep:first-child { margin-top: 0; }
- 
+
   .raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 14px; }
   .raster.zes { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   @media (min-width: 640px) { .raster.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
- 
+
   .tegel {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     min-height: 160px; padding: 16px 10px 12px;
@@ -47,7 +47,7 @@
   .ga { font-size: 12px; color: var(--donkergrijs); }
   .tegel:hover .ga { color: var(--rood); }
   .tegel.leeg { opacity: .55; }
- 
+
   @media (prefers-reduced-motion: reduce) { .tegel { transition: none; } .tegel:hover { transform: none; } }
 </style>
 </head>
@@ -56,13 +56,13 @@
   <div class="kop">
     <div>
       <h2 id="titel">DOCUMENTEN</h2>
-      <p>Klik op een tegel en je staat meteen in de juiste bib.</p>
+      <p>Klik op een tegel en je staat meteen op de juiste plek.</p>
     </div>
     <ul class="legende" id="legende"></ul>
   </div>
   <div id="inhoud"></div>
 </div>
- 
+
 <script>
 /* =====================================================================
    INSTELLINGEN
@@ -75,14 +75,14 @@
 // Weergave die geopend wordt (zoals in jullie links: /Forms/Laatst gewijzigd.aspx).
 // Zet op '' om de standaardweergave van de bibliotheek te openen.
 const WEERGAVE = 'Laatst gewijzigd';
- 
+
 const GROEPEN = {
   beleid: { label: 'Beleid',                  kleur: '#4d5554', tint: '#e4e7e5' },
   kwal:   { label: 'Kwaliteit',               kleur: '#b91818', tint: '#f6dede' },
   ontw:   { label: 'Ontwikkeling stimuleren', kleur: '#4f6a5c', tint: '#ced7d2' },
   res:    { label: 'Resultaten',              kleur: '#3a6f8e', tint: '#d7e6ee' }
 };
- 
+
 const DOMEINEN = [
   { key: 'algemeen',     groep: 'beleid', naam: 'Algemeen beleid',                   bib: 'Documenten Algemeen beleid',
     icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M15.5 8.5l-2 5-5 2 2-5z' },
@@ -96,7 +96,7 @@ const DOMEINEN = [
     icoon: 'M3 8l9-4 9 4v8l-9 4-9-4z M3 8l9 4 9-4 M12 12v8' },
   { key: 'welzijn',      groep: 'beleid', naam: 'Veiligheid en welzijn', bib: 'Documenten Veiligheid en welzijn',
     icoon: 'M12 3l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10V6z M9 12l2 2 4-4' },
-  { key: 'kwaliteit',    groep: 'kwal',   naam: 'Kwaliteits\u00ADontwikkeling',       bib: 'Documenten Kwaliteitsontwikkeling',
+  { key: 'kwaliteit',    groep: 'kwal',   naam: 'Kwaliteits­ontwikkeling',       bib: 'Documenten Kwaliteitsontwikkeling',
     icoon: 'M20 12a8 8 0 0 1-14 5.3 M4 12a8 8 0 0 1 14-5.3 M18 3v4h-4 M6 21v-4h4' },
   { key: 'doelgericht',  groep: 'ontw',   naam: 'Doelgericht werken',                bib: 'Documenten Doelgericht werken',   module: true,
     icoon: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8Z M12 11.5v1' },
@@ -109,7 +109,7 @@ const DOMEINEN = [
   { key: 'resultaten',   groep: 'res',    naam: 'Resultaten en effecten',            bib: 'Documenten Resultaten en effecten',
     icoon: 'M4 20V4 M4 20h16 M8 16v-4 M12 16V8 M16 16v-6' }
 ];
- 
+
 /* =====================================================================
    Vanaf hier niets aanpassen
    ===================================================================== */
@@ -119,10 +119,10 @@ const type = p.get('type') === 'module' ? 'module' : 'opleiding';
 const openIn = p.get('open') === 'zelfde' ? '_top' : '_blank';
 if (p.get('titel') === 'nee') document.getElementById('widget').classList.add('verberg-titel');
 if (p.get('kop')) document.getElementById('titel').textContent = p.get('kop');
- 
+
 const NS = 'http://www.w3.org/2000/svg';
 const HEX = '50,2 95,28 95,87 50,113 5,87 5,28';
- 
+
 function el(tag, attrs, kids) {
   const e = document.createElement(tag);
   for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
@@ -151,7 +151,7 @@ function tegel(d) {
   const g = GROEPEN[d.groep];
   const href = url(d);
   const a = el('a', { class: 'tegel' + (href === '#' ? ' leeg' : ''), href, target: openIn,
-                      rel: 'noopener', 'aria-label': d.naam + ': open bibliotheek' }, [
+                      rel: 'noopener', 'aria-label': d.naam + ': open' }, [
     el('span', { class: 'hex' }, [
       hexje(g.tint, 60, 69),
       svg('svg', { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: g.kleur,
@@ -159,22 +159,22 @@ function tegel(d) {
           [svg('path', { d: d.icoon })])
     ]),
     el('span', { class: 'naam' }, [d.naam]),
-    el('span', { class: 'ga' }, ['Open bibliotheek →'])
+    el('span', { class: 'ga' }, ['Open →'])
   ]);
   return a;
 }
 function groepBlok(key, items) {
   return el('section', { class: 'groep' }, [el('div', { class: 'raster' }, items.map(tegel))]);
 }
- 
+
 const lijst = type === 'module' ? DOMEINEN.filter(d => d.module) : DOMEINEN;
 const inhoud = document.getElementById('inhoud');
 const legende = document.getElementById('legende');
 const van = k => lijst.filter(d => d.groep === k);
- 
+
 [...new Set(lijst.map(d => d.groep))].forEach(k =>
   legende.append(el('li', {}, [hexje(GROEPEN[k].kleur, 12, 14), GROEPEN[k].label])));
- 
+
 let modus = '';
 function teken() {
   const breed = window.innerWidth >= 860;
@@ -197,7 +197,7 @@ function teken() {
 }
 teken();
 window.addEventListener('resize', teken);
- 
+
 if (!site) {
   const m = el('p', { style: 'margin:16px 0 0;font-size:13px;color:#b91818' },
     ['Nog geen site ingesteld: voeg ?site=https://… toe aan de link van deze widget.']);
